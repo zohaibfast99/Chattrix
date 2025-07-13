@@ -1,0 +1,23 @@
+# Node backend
+node_modules/
+.env
+
+# Build
+dist/
+build/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# System/IDE files
+.DS_Store
+.vscode/
+.idea/
+*.suo
+*.njsproj
+*.sln
+
+frontend/.env
+backend/.env
