@@ -11,7 +11,8 @@ const app = express();
 
 const PORT = process.env.PORT;
 
-app.use(express.json());
+// Base64 image payloads (profile photos, image messages) exceed the 100kb default.
+app.use(express.json({ limit: "10mb" }));
 app.use(cookieParser());
 app.use(
     cors({
@@ -23,7 +24,8 @@ app.use(
 app.use("/api/auth", authRoutes);
 app.use("/api/message", messageRoutes);
 
+await connectDB();
+
 app.listen(PORT, () => {
     console.log("Server is running on PORT: " + PORT)
-    connectDB();
 });

@@ -1,5 +1,6 @@
 import User from "../models/user.model.js";
 import Message from "../models/message.model.js";
+import cloudinary from "../lib/cloudinary.js";
 
 export const getUsersForSidebar = async (req, res) => {
     try{
@@ -21,7 +22,7 @@ export const getMessages = async (req, res) => {
                 {senderId: myId, receiverId:userToChatId},
                 {senderId: userToChatId, receiverId:myId}
             ]
-        })
+        }).sort({createdAt: 1})
         res.status(200).json(messages);
     }catch(error){
         console.log("Error in getMessages controller ", error.message);
