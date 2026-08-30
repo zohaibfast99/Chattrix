@@ -28,11 +28,11 @@ const pickGradient = (seed = "") => {
  * Renders the user's photo, or a deterministic initials tile when they have none,
  * so every contact still reads as a distinct person.
  */
-const Avatar = ({ user, className = "size-10", text = "text-sm", ring = false }) => {
+const Avatar = ({ user, className = "size-10", text = "text-sm", ring = false, online = false }) => {
   const ringClasses = ring ? "ring-2 ring-primary/50 ring-offset-2 ring-offset-base-100" : "";
 
   return (
-    <div className={`shrink-0 ${className}`}>
+    <div className={`relative shrink-0 ${className}`}>
       {user?.profilePic ? (
         <img
           src={user.profilePic}
@@ -47,6 +47,13 @@ const Avatar = ({ user, className = "size-10", text = "text-sm", ring = false })
         >
           {initials(user?.fullName)}
         </div>
+      )}
+
+      {online && (
+        <span
+          className="absolute bottom-0 right-0 size-1/4 rounded-full bg-success ring-2 ring-base-100"
+          aria-label="Online"
+        />
       )}
     </div>
   );

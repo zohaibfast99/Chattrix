@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import toast from "react-hot-toast";
 import { axiosInstance } from "../lib/axios.js";
+import { useAuthStore } from "./useAuthStore.js";
 
 const errorMessage = (error, fallback) =>
   error?.response?.data?.message || error?.response?.data?.error || fallback;
@@ -40,13 +41,20 @@ export const useChatStore = create((set, get) => ({
   },
 
   sendMessage: async ({ text, image }) => {
-    const { selectedUser, messages } = get();
+    const { selectedUser } = get();
     if (!selectedUser) return false;
 
     set({ isSending: true });
     try {
       const res = await axiosInstance.post(`/message/send/${selectedUser._id}`, { text, image });
-      set({ messages: [...messages, res.data] });
+      // Read the list at set-time rather than closing over it: inbound socket
+      // messages can land mid-request, and a stale copy would drop them. The
+      // guard covers this message's own echo winning the race with the response.
+      set((state) =>
+        state.messages.some((existing) => existing._id === res.data._id)
+          ? state
+          : { messages: [...state.messages, res.data] }
+      );
       return true;
     } catch (error) {
       toast.error(errorMessage(error, "Message failed to send"));
@@ -58,8 +66,35 @@ export const useChatStore = create((set, get) => ({
 
   selectUser: (user) => set({ selectedUser: user }),
 
-  reset: () => set({ users: [], messages: [], selectedUser: null }),
+  subscribeToMessages: () => {
+    const socket = useAuthStore.getState().socket;
+    if (!socket) return;
 
-  // Sockets land here later: a subscribeToMessages()/unsubscribe pair that
-  // appends inbound messages to `messages` when they match `selectedUser`.
+    // Re-subscribing on every selectedUser change would stack handlers, so the
+    // previous one is always cleared first.
+    socket.off("newMessage");
+    socket.on("newMessage", (message) => {
+      const { selectedUser, messages } = get();
+      const authUserId = useAuthStore.getState().authUser?._id;
+
+      // The server echoes to the sender's room as well, so a tab that already
+      // appended this message from the POST response must not append it twice.
+      if (messages.some((existing) => existing._id === message._id)) return;
+
+      // Only messages belonging to the conversation on screen. Anything else is a
+      // different thread, which the sidebar surfaces on its next load.
+      const belongsHere =
+        (message.senderId === selectedUser?._id && message.receiverId === authUserId) ||
+        (message.senderId === authUserId && message.receiverId === selectedUser?._id);
+      if (!belongsHere) return;
+
+      set({ messages: [...messages, message] });
+    });
+  },
+
+  unsubscribeFromMessages: () => {
+    useAuthStore.getState().socket?.off("newMessage");
+  },
+
+  reset: () => set({ users: [], messages: [], selectedUser: null }),
 }))

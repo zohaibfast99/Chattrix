@@ -1,11 +1,13 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Search, Users } from "lucide-react";
+import { useAuthStore } from "../store/useAuthStore";
 import { useChatStore } from "../store/useChatStore";
 import Avatar from "./Avatar";
 import SidebarSkeleton from "./skeletons/SidebarSkeleton";
 
 const Sidebar = () => {
   const { users, selectedUser, isUsersLoading, getUsers, selectUser } = useChatStore();
+  const { onlineUsers } = useAuthStore();
   const [query, setQuery] = useState("");
 
   useEffect(() => {
@@ -21,6 +23,13 @@ const Sidebar = () => {
     );
   }, [users, query]);
 
+  // onlineUsers carries every connected id including our own, so it is scoped to
+  // the people actually in this list before being counted.
+  const onlineCount = useMemo(
+    () => users.filter((user) => onlineUsers.includes(user._id)).length,
+    [users, onlineUsers]
+  );
+
   return (
     <aside
       className={`${
@@ -32,7 +41,7 @@ const Sidebar = () => {
           <Users className="size-5 shrink-0 text-primary" />
           <h2 className="hidden font-semibold tracking-tight lg:block">Contacts</h2>
           <span className="ml-auto hidden rounded-full bg-base-200 px-2 py-0.5 text-xs font-medium text-base-content/60 lg:block">
-            {users.length}
+            {onlineCount} online
           </span>
         </div>
 
@@ -74,6 +83,7 @@ const Sidebar = () => {
                       className="size-11"
                       text="text-sm"
                       ring={isActive}
+                      online={onlineUsers.includes(user._id)}
                     />
                     <div className="hidden min-w-0 flex-1 lg:block">
                       <p

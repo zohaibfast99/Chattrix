@@ -3,11 +3,13 @@ import dotenv from "dotenv";
 import cookieParser from "cookie-parser"
 import cors from "cors"
 import {connectDB} from "./lib/db.js";
+// app and server both come from the socket layer: socket.io needs to wrap the same
+// http server express is mounted on, so it owns their creation.
+import { app, server } from "./lib/socket.js";
 import authRoutes from "./routes/auth.route.js";
 import messageRoutes from "./routes/message.route.js";
 
 dotenv.config();
-const app = express();
 
 const PORT = process.env.PORT;
 
@@ -26,6 +28,6 @@ app.use("/api/message", messageRoutes);
 
 await connectDB();
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
     console.log("Server is running on PORT: " + PORT)
 });

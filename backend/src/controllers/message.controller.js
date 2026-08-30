@@ -1,6 +1,7 @@
 import User from "../models/user.model.js";
 import Message from "../models/message.model.js";
 import cloudinary from "../lib/cloudinary.js";
+import { io } from "../lib/socket.js";
 
 export const getUsersForSidebar = async (req, res) => {
     try{
@@ -47,7 +48,13 @@ export const sendMessage = async (req, res) => {
             image: imageUrl,
         });
         await newMessage.save();
-        //socket.io
+
+        // Each user has a room named by their id. Emitting to the sender too keeps
+        // their other tabs in sync; the client drops the echo of a message it has
+        // already appended from this response.
+        io.to(String(receiverId)).emit("newMessage", newMessage);
+        io.to(String(senderId)).emit("newMessage", newMessage);
+
         res.status(201).json(newMessage);
     }catch(error){
         console.log("Error in sendMessage controller ", error.message);

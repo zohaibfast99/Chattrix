@@ -1,10 +1,13 @@
 import React from "react";
 import { ArrowLeft, X } from "lucide-react";
+import { useAuthStore } from "../store/useAuthStore";
 import { useChatStore } from "../store/useChatStore";
 import Avatar from "./Avatar";
 
 const ChatHeader = () => {
   const { selectedUser, selectUser } = useChatStore();
+  const { onlineUsers } = useAuthStore();
+  const isOnline = onlineUsers.includes(selectedUser._id);
 
   return (
     <header className="flex items-center gap-3 border-b border-base-300 bg-base-100/80 px-3 py-3 backdrop-blur-xl sm:px-5">
@@ -16,13 +19,15 @@ const ChatHeader = () => {
         <ArrowLeft className="size-5" />
       </button>
 
-      <Avatar user={selectedUser} className="size-10" />
+      <Avatar user={selectedUser} className="size-10" online={isOnline} />
 
       <div className="min-w-0 flex-1">
         <h2 className="truncate font-semibold leading-tight tracking-tight">
           {selectedUser.fullName}
         </h2>
-        <p className="truncate text-xs text-base-content/50">{selectedUser.email}</p>
+        <p className="truncate text-xs text-base-content/50">
+          {isOnline ? "Online" : selectedUser.email}
+        </p>
       </div>
 
       <button
