@@ -1,4 +1,5 @@
 import React from "react";
+import { Sparkles } from "lucide-react";
 
 const GRADIENTS = [
   "from-primary to-secondary",
@@ -30,6 +31,18 @@ const pickGradient = (seed = "") => {
  */
 const Avatar = ({ user, className = "size-10", text = "text-sm", ring = false, online = false }) => {
   const ringClasses = ring ? "ring-2 ring-primary/50 ring-offset-2 ring-offset-base-100" : "";
+
+  if (user?.isAi) {
+    return (
+      <div className={`relative shrink-0 ${className}`}>
+        <div
+          className={`grid size-full place-items-center rounded-full bg-gradient-to-br from-primary to-secondary text-primary-content ${ringClasses}`}
+        >
+          <Sparkles className="size-1/2" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`relative shrink-0 ${className}`}>

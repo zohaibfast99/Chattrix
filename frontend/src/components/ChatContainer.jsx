@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { useAuthStore } from "../store/useAuthStore";
+import { useAiStore } from "../store/useAiStore";
 import { useChatStore } from "../store/useChatStore";
 import { formatDayLabel, formatMessageTime, startsNewDay } from "../lib/utils";
 import Avatar from "./Avatar";
@@ -16,46 +17,78 @@ const ChatContainer = () => {
     subscribeToMessages,
     unsubscribeFromMessages,
   } = useChatStore();
+  const {
+    messages: aiMessages,
+    isLoading: isAiLoading,
+    isReplying,
+    getMessages: getAiMessages,
+  } = useAiStore();
   const { authUser } = useAuthStore();
   const bottomRef = useRef(null);
 
+  const isAi = selectedUser?.isAi === true;
+  const thread = isAi ? aiMessages : messages;
+  const isThreadLoading = isAi ? isAiLoading : isMessagesLoading;
+
   useEffect(() => {
     if (!selectedUser?._id) return;
+
+    // The assistant thread is private and fetched over its own route; the socket
+    // subscription only concerns messages between two people.
+    if (isAi) {
+      getAiMessages();
+      return;
+    }
+
     getMessages(selectedUser._id);
     subscribeToMessages();
     return () => unsubscribeFromMessages();
-  }, [selectedUser?._id, getMessages, subscribeToMessages, unsubscribeFromMessages]);
+  }, [
+    selectedUser?._id,
+    isAi,
+    getMessages,
+    getAiMessages,
+    subscribeToMessages,
+    unsubscribeFromMessages,
+  ]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [thread, isReplying]);
 
   return (
     <section className="flex min-w-0 flex-1 flex-col bg-base-100">
       <ChatHeader />
 
       <div className="scrollbar-slim flex-1 overflow-y-auto">
-        {isMessagesLoading ? (
+        {isThreadLoading ? (
           <MessageSkeleton />
-        ) : messages.length === 0 ? (
+        ) : thread.length === 0 ? (
           <div className="flex h-full items-center justify-center px-8 text-center">
             <p className="max-w-xs text-sm text-base-content/50">
-              This is the beginning of your conversation with{" "}
-              <span className="font-medium text-base-content/70">
-                {selectedUser.fullName.split(" ")[0]}
-              </span>
-              . Say hello.
+              {isAi ? (
+                "Ask Chattrix AI anything — it remembers this conversation until you start a new one."
+              ) : (
+                <>
+                  This is the beginning of your conversation with{" "}
+                  <span className="font-medium text-base-content/70">
+                    {selectedUser.fullName.split(" ")[0]}
+                  </span>
+                  . Say hello.
+                </>
+              )}
             </p>
           </div>
         ) : (
           <div className="space-y-1.5 p-4 sm:p-6">
-            {messages.map((message, i) => {
-              const isMine = message.senderId === authUser._id;
+            {thread.map((message, i) => {
+              // AI turns carry a role instead of participant ids.
+              const isMine = isAi ? message.role === "user" : message.senderId === authUser._id;
               const author = isMine ? authUser : selectedUser;
 
               return (
                 <React.Fragment key={message._id}>
-                  {startsNewDay(message, messages[i - 1]) && (
+                  {startsNewDay(message, thread[i - 1]) && (
                     <div className="flex items-center gap-3 py-4">
                       <span className="h-px flex-1 bg-base-300" />
                       <span className="text-xs font-medium text-base-content/40">
@@ -109,6 +142,20 @@ const ChatContainer = () => {
                 </React.Fragment>
               );
             })}
+            {isAi && isReplying && (
+              <div className="animate-pop flex items-end gap-2 justify-start">
+                <Avatar user={selectedUser} className="size-8" text="text-[11px]" />
+                <span className="flex items-center gap-1 rounded-2xl rounded-bl-md border border-base-300 bg-base-200/70 px-4 py-3 shadow-sm">
+                  {[0, 1, 2].map((dot) => (
+                    <span
+                      key={dot}
+                      className="size-1.5 animate-bounce rounded-full bg-base-content/40"
+                      style={{ animationDelay: `${dot * 140}ms` }}
+                    />
+                  ))}
+                </span>
+              </div>
+            )}
             <div ref={bottomRef} />
           </div>
         )}

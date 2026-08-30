@@ -2,6 +2,7 @@ import { create } from "zustand";
 import toast from "react-hot-toast";
 import { io } from "socket.io-client";
 import { axiosInstance } from "../lib/axios.js";
+import { useAiStore } from "./useAiStore.js";
 import { useChatStore } from "./useChatStore.js";
 
 const errorMessage = (error, fallback) =>
@@ -71,6 +72,7 @@ export const useAuthStore = create((set, get) => ({
       get().disconnectSocket();
       set({ authUser: null });
       useChatStore.getState().reset();
+      useAiStore.getState().reset();
       toast.success("Signed out");
     } catch (error) {
       toast.error(errorMessage(error, "Could not sign you out"));

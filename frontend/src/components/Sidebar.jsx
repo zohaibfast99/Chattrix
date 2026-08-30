@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Search, Users } from "lucide-react";
+import { AI_CONTACT } from "../lib/aiContact";
 import { useAuthStore } from "../store/useAuthStore";
 import { useChatStore } from "../store/useChatStore";
 import Avatar from "./Avatar";
@@ -25,6 +26,8 @@ const Sidebar = () => {
 
   // onlineUsers carries every connected id including our own, so it is scoped to
   // the people actually in this list before being counted.
+  const isAiActive = selectedUser?.isAi === true;
+
   const onlineCount = useMemo(
     () => users.filter((user) => onlineUsers.includes(user._id)).length,
     [users, onlineUsers]
@@ -55,6 +58,25 @@ const Sidebar = () => {
             className="input input-sm input-bordered h-10 w-full rounded-xl bg-base-200/60 pl-9 focus:outline-none focus:ring-2 focus:ring-primary/20"
           />
         </div>
+      </div>
+
+      <div className="border-b border-base-300 p-2 lg:p-3">
+        <button
+          onClick={() => selectUser(AI_CONTACT)}
+          className={`flex w-full items-center gap-3 rounded-xl p-2.5 text-left transition ${
+            isAiActive
+              ? "bg-primary/10 ring-1 ring-primary/25"
+              : "hover:bg-base-200/70 active:bg-base-200"
+          }`}
+        >
+          <Avatar user={AI_CONTACT} className="size-11" ring={isAiActive} />
+          <div className="hidden min-w-0 flex-1 lg:block">
+            <p className={`truncate font-medium ${isAiActive ? "text-primary" : ""}`}>
+              {AI_CONTACT.fullName}
+            </p>
+            <p className="truncate text-sm text-base-content/50">Ask anything, anytime</p>
+          </div>
+        </button>
       </div>
 
       <div className="scrollbar-slim flex-1 overflow-y-auto">
