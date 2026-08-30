@@ -13,10 +13,16 @@ const PREVIEW = [
  * scripted conversation that animates in, so the product sells itself.
  */
 const AuthAside = ({ title, subtitle }) => (
-  <aside className="relative hidden overflow-hidden bg-base-200 lg:flex lg:flex-col lg:justify-center">
+  <aside className="relative hidden overflow-hidden bg-gradient-to-r from-base-100 via-base-200 to-base-200 lg:flex lg:flex-col lg:justify-center">
     <div className="pointer-events-none absolute -left-24 -top-24 size-96 rounded-full bg-primary/20 blur-3xl" />
     <div className="pointer-events-none absolute -bottom-32 -right-20 size-96 rounded-full bg-secondary/20 blur-3xl" />
     <div className="pointer-events-none absolute inset-0 opacity-[0.15] [background-image:radial-gradient(hsl(var(--bc))_1px,transparent_1px)] [background-size:22px_22px]" />
+
+    {/* Feathered seam. The column edge is otherwise a hard step from base-100 to
+        base-200, with overflow-hidden slicing the glow flat along the same line.
+        This strip blurs whatever sits under it and fades that blur out to the
+        right, so the two halves dissolve together instead of butting up. */}
+    <div className="pointer-events-none absolute inset-y-0 -left-px w-48 bg-gradient-to-r from-base-100 via-base-100/60 to-transparent backdrop-blur-2xl [mask-image:linear-gradient(to_right,black_25%,transparent)]" />
 
     <div className="relative z-10 mx-auto w-full max-w-md px-12">
       <span className="inline-flex items-center gap-2 rounded-full border border-base-300 bg-base-100/70 px-3 py-1 text-xs font-medium text-base-content/70 backdrop-blur">

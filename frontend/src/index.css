@@ -7,7 +7,7 @@
     -webkit-tap-highlight-color: transparent;
   }
   body {
-    @apply antialiased;
+    @apply antialiased bg-base-100 text-base-content;
   }
 }
 
@@ -38,6 +38,12 @@
   .animate-pop {
     animation: pop 0.25s cubic-bezier(0.21, 1.02, 0.73, 1) both;
   }
+
+  /* A slow, soft ember breath — 5s and barely-there, so the mark feels
+     expensive rather than attention-seeking. */
+  .animate-halo {
+    animation: halo 5s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  }
 }
 
 @keyframes rise {
@@ -62,9 +68,22 @@
   }
 }
 
+@keyframes halo {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.2;
+    transform: scale(1.15);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-rise,
-  .animate-pop {
+  .animate-pop,
+  .animate-halo {
     animation: none;
   }
 }

@@ -37,7 +37,7 @@ const App = () => {
       </Routes>
 
       <Toaster
-        position="top-center"
+        position="bottom-right"
         toastOptions={{
           className: "!bg-base-100 !text-base-content !border !border-base-300 !shadow-lg",
         }}
